@@ -76,7 +76,7 @@ def queue_video_status(title, quality, file_type="", image_url="", queue_id=1):
     # use buttons which download IDs to stop download
 
 def stop_queue_entry(queue_id):
-    if queue_list[queue_id].status.get("done"):
+    if not queue_list[queue_id].status.get() == "done":
         queue_list[queue_id].status.set("stopped")
 
 def get_mp4():
@@ -206,20 +206,6 @@ def get_available_resolutions(item):
         available_streams[index] = str(available_streams[index]) + "p"
         index += 1
     return available_streams
-
-# def get_right_video_stream(item):
-#     video_quality = get_right_video_resolution(item)
-#
-#     available_streams = get_available_resolutions(item)
-#
-#     if video_quality in ["144p", "240p", "360p", "480p", "720p"]:
-#         return [item.streams.get_by_resolution(video_quality), video_quality]
-#
-#     elif video_quality in available_streams:
-#         return [item.streams.get_by_resolution(video_quality), video_quality]
-#
-#     else: # best video quality # Needs to be an adaptive stream. Connect audio and video
-#         return [item.streams.get_by_resolution(available_streams[-1]), available_streams[-1]]
 
 
 def video_quality_translator(quality):
