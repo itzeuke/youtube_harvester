@@ -135,23 +135,31 @@ def download_video(queue_id):
 
     item = queue_entry.item
     quality = queue_entry.quality
-    streams = item.streams.filter(adaptive="True") # adaptive streams seperate audio and video
+    streams = item.streams
 
     audio_stream = streams.get_audio_only()
 
     if queue_entry.type == "MP4":
-        video_stream = item.streams.filter(adaptive="True").filter(res=quality)[0]
+        progressive_streams = streams.filter(progressive=True).filter(res=quality)
+        if progressive_streams:
+            if queue_list[queue_id].status.get() == "stopped":
+                return
+
+            progressive_streams[0].download(filename=validate_file_name(progressive_streams[0].title + ".mp4"), output_path=STORE_PATH + "\\MP4")
+            queue_list[queue_id].status.set("done")
+        else:
+            video_stream = item.streams.filter(adaptive="True").filter(res=quality)[0]
 
 
-        if not os.path.exists(STORE_PATH + r"\.tmp"):
-            os.makedirs(STORE_PATH + r"\.tmp")
-            os.system(f'attrib +h "{STORE_PATH + r"\.tmp"}"')
+            if not os.path.exists(STORE_PATH + r"\.tmp"):
+                os.makedirs(STORE_PATH + r"\.tmp")
+                os.system(f'attrib +h "{STORE_PATH + r"\.tmp"}"')
 
-        audio_stream.download(filename=f"vid_{queue_id}.mp3", output_path=STORE_PATH + r"\.tmp")
-        video_stream.download(filename=f"vid_{queue_id}.mp4", output_path=STORE_PATH + r"\.tmp")
+            audio_stream.download(filename=f"vid_{queue_id}.mp3", output_path=STORE_PATH + r"\.tmp")
+            video_stream.download(filename=f"vid_{queue_id}.mp4", output_path=STORE_PATH + r"\.tmp")
 
 
-        finished_download(video_stream, STORE_PATH + f"\\.tmp\\vid_{queue_id}.mp4", queue_id)
+            finished_download(video_stream, STORE_PATH + f"\\.tmp\\vid_{queue_id}.mp4", queue_id)
 
     elif queue_entry.type == "MP3":
 
@@ -421,12 +429,6 @@ get_mp3_button.grid(row=0, column=0, padx=10)
 get_mp4_button.grid(row=0, column=1)
 
 version_label.place(relx=0.98, rely=0.97, anchor="e")
-
-#error_lable.grid(row=1, column=0)
-
-#####error_lable.grid(row=3, column=0, columnspan=4)
-
-# open_files_button.place(relx=1.0, rely=1.0, anchor='se')
 
 #
 # #  checkboxes
